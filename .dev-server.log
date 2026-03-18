@@ -1,0 +1,13 @@
+
+> houseconnect@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.7 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+
+✓ Starting...
+Creating turbopack project { dir: 'C:\\Users\\HomePC\\Desktop\\Houseconnect', testMode: true }
+✓ Ready in 4.2s
+○ Compiling / ...
+ GET / 200 in 3.6s (compile: 1346ms, proxy.ts: 18ms, render: 2.2s)
