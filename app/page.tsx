@@ -11,11 +11,12 @@ import { Card } from "@/components/ui/card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { listingCategories, supportedCities } from "@/lib/constants";
 import { demoProfiles, demoUsers } from "@/lib/data/demo";
-import { getFeaturedProperties, getLandingContent } from "@/lib/repository";
+import { getLandingContent } from "@/lib/repository";
+import { getFeaturedPropertiesServer } from "@/lib/server-repository";
 import { formatCompactNumber } from "@/lib/utils";
 
-export default function HomePage() {
-  const featured = getFeaturedProperties().slice(0, 3);
+export default async function HomePage() {
+  const featured = (await getFeaturedPropertiesServer()).slice(0, 3);
   const landing = getLandingContent();
   const verifiedAgents = demoUsers
     .filter((user) => user.role === "agent")

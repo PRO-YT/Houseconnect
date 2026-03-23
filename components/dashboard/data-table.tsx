@@ -27,18 +27,26 @@ export function DataTable({
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, rowIndex) => (
-              <tr
-                className={cn("border-t border-slate-100", rowIndex % 2 === 0 ? "bg-white" : "bg-slate-50/40")}
-                key={`${title}-${rowIndex}`}
-              >
-                {row.map((cell, cellIndex) => (
-                  <td className="px-6 py-4 align-top text-slate-700" key={`${title}-${rowIndex}-${cellIndex}`}>
-                    {cell}
-                  </td>
-                ))}
+            {rows.length ? (
+              rows.map((row, rowIndex) => (
+                <tr
+                  className={cn("border-t border-slate-100", rowIndex % 2 === 0 ? "bg-white" : "bg-slate-50/40")}
+                  key={`${title}-${rowIndex}`}
+                >
+                  {row.map((cell, cellIndex) => (
+                    <td className="px-6 py-4 align-top text-slate-700" key={`${title}-${rowIndex}-${cellIndex}`}>
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr className="border-t border-slate-100 bg-white">
+                <td className="px-6 py-10 text-sm text-slate-500" colSpan={columns.length}>
+                  No records yet. As activity grows, this table will fill with live marketplace data.
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

@@ -4,20 +4,18 @@ import { StatusChip } from "@/components/dashboard/status-chip";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { Card } from "@/components/ui/card";
 import { requireRole } from "@/lib/auth";
-import { demoProperties } from "@/lib/data/demo";
+import { getListingManagerPropertiesServer } from "@/lib/server-repository";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function ListingsManagerPage() {
   const session = await requireRole(["agent", "admin"]);
-  const listings =
-    session.role === "admin"
-      ? demoProperties
-      : demoProperties.filter((property) => property.assignedAgentId === session.userId);
+  const listings = await getListingManagerPropertiesServer(session.userId, session.role);
 
   return (
     <div className="space-y-6">
       <DashboardHeader
         description="Create listings, keep them in draft or pending review, and monitor moderation state at a glance."
+        eyebrow={session.role === "admin" ? "Moderation" : "Inventory"}
         title={session.role === "admin" ? "Listing moderation" : "Listing manager"}
       />
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -35,6 +33,9 @@ export default async function ListingsManagerPage() {
           <h2 className="text-xl font-semibold text-slate-950">
             {session.role === "admin" ? "Create sample listing" : "Add or update listing"}
           </h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            The editor now supports map coordinates, image placeholders, amenities, and transparent fee capture from the first draft.
+          </p>
           <div className="mt-5">
             <ListingEditorForm mode="agent" />
           </div>

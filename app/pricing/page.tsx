@@ -64,12 +64,12 @@ export default function PricingPage() {
 
           <div className="mt-12 grid gap-6 lg:grid-cols-2">
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-slate-950">Monetization-ready architecture</h2>
+              <h2 className="text-xl font-semibold text-slate-950">How the platform earns</h2>
               <div className="mt-4 grid gap-3 text-sm leading-7 text-slate-600">
+                <p>Agent subscriptions for listing capacity, analytics, and support tiers.</p>
                 <p>Featured listing upgrades and sponsored placement slots.</p>
-                <p>Agent verification fee workflow with compliance review states.</p>
-                <p>Paystack and Flutterwave checkout hooks for recurring billing.</p>
-                <p>Lead-credit and pay-per-lead extensions for future rollout.</p>
+                <p>Verification fees tied to compliance review and trust badges.</p>
+                <p>Future add-ons: developer packages, premium leads, and banner sponsorship.</p>
               </div>
             </Card>
             <Card className="p-6">

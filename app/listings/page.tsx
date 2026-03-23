@@ -6,8 +6,8 @@ import { PropertyGrid } from "@/components/property/property-grid";
 import { Card } from "@/components/ui/card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { popularLocations } from "@/lib/data/demo";
-import { searchProperties } from "@/lib/repository";
 import { buildMetadata } from "@/lib/seo";
+import { searchPropertiesServer } from "@/lib/server-repository";
 import type { SearchFilters } from "@/lib/types";
 import { formatCompactNumber } from "@/lib/utils";
 
@@ -49,7 +49,7 @@ export default async function ListingsPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const filters = parseFilters(resolvedSearchParams);
-  const results = searchProperties(filters);
+  const results = await searchPropertiesServer(filters);
 
   return (
     <section className="section-space">

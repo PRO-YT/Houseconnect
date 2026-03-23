@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { buildMapEmbedUrl } from "@/lib/maps";
+import { buildMapEmbedUrl, buildMapSearchUrl } from "@/lib/maps";
 
 export function MapCard({
   latitude,
@@ -19,9 +19,19 @@ export function MapCard({
           </p>
           <p className="mt-1 text-lg font-semibold text-slate-950">{label}</p>
         </div>
-        <p className="text-sm text-slate-500">
-          {latitude.toFixed(4)}, {longitude.toFixed(4)}
-        </p>
+        <div className="text-right">
+          <p className="text-sm text-slate-500">
+            {latitude.toFixed(4)}, {longitude.toFixed(4)}
+          </p>
+          <a
+            className="mt-2 inline-flex text-sm font-medium text-teal-700"
+            href={buildMapSearchUrl(latitude, longitude, label)}
+            rel="noreferrer"
+            target="_blank"
+          >
+            Open in Google Maps
+          </a>
+        </div>
       </div>
       <iframe
         className="h-80 w-full border-0"

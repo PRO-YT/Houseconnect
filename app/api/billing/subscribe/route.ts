@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { getRequestKey } from "@/lib/api";
 import { getSession } from "@/lib/auth";
 import { createCheckoutSession } from "@/lib/payments";
+import { assertRateLimit } from "@/lib/rate-limit";
 import { sanitizeText } from "@/lib/sanitize";
 
 export async function POST(request: NextRequest) {
@@ -10,11 +12,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Only agents can subscribe to plans." }, { status: 403 });
   }
 
+  if (!assertRateLimit(getRequestKey(request, "billing-subscribe"), { limit: 15, windowMs: 60_000 })) {
+    return NextResponse.json({ error: "Too many billing attempts. Please wait a minute." }, { status: 429 });
+  }
+
   const body = (await request.json()) as { planId?: string; provider?: string };
   const planId = sanitizeText(body.planId, 60);
   const provider = sanitizeText(body.provider, 30) as "paystack" | "flutterwave" | "stripe";
 
-  if (!planId || !provider) {
+  if (!planId || !["paystack", "flutterwave", "stripe"].includes(provider)) {
     return NextResponse.json({ error: "Plan and provider are required." }, { status: 400 });
   }
 

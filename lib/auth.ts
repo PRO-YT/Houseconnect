@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 
 import { demoUsers } from "@/lib/data/demo";
+import { hasDatabaseUrl, prisma } from "@/lib/prisma";
 import { getUserByEmail } from "@/lib/repository";
 import type { DemoSession, Role } from "@/lib/types";
 
@@ -90,6 +91,86 @@ export function authenticateDemoUser(email: string, password: string) {
   return {
     userId: user.id,
     role: user.role as Exclude<Role, "guest">,
+    email: user.email,
+    fullName: user.fullName,
+    issuedAt: Date.now(),
+  } satisfies DemoSession;
+}
+
+export async function authenticateUser(email: string, password: string) {
+  const normalizedEmail = email.toLowerCase();
+
+  if (hasDatabaseUrl()) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { email: normalizedEmail },
+      });
+
+      if (user) {
+        if (!user.isActive || !verifyPassword(password, user.passwordHash)) {
+          return null;
+        }
+
+        return {
+          userId: user.id,
+          role: user.role.toLowerCase() as Exclude<Role, "guest">,
+          email: user.email,
+          fullName: user.fullName,
+          issuedAt: Date.now(),
+        } satisfies DemoSession;
+      }
+    } catch {
+      // Fall back to demo auth when the database is unavailable during local development.
+    }
+  }
+
+  return authenticateDemoUser(normalizedEmail, password);
+}
+
+export async function registerUserAccount(input: {
+  fullName: string;
+  email: string;
+  password: string;
+  phone: string;
+  role: Exclude<Role, "guest">;
+}) {
+  if (!hasDatabaseUrl()) {
+    return {
+      userId: `self-serve-${Date.now()}`,
+      role: input.role,
+      email: input.email,
+      fullName: input.fullName,
+      issuedAt: Date.now(),
+    } satisfies DemoSession;
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email: input.email.toLowerCase() },
+    select: { id: true },
+  });
+
+  if (existingUser) {
+    throw new Error("An account already exists with that email.");
+  }
+
+  const user = await prisma.user.create({
+    data: {
+      fullName: input.fullName,
+      email: input.email.toLowerCase(),
+      passwordHash: hashPassword(input.password),
+      phone: input.phone,
+      role: input.role.toUpperCase() as never,
+      profile: {
+        create: {
+          preferences: [],
+        },
+      },
+    },
+  });
+
+  return {
+    userId: user.id,
+    role: input.role,
     email: user.email,
     fullName: user.fullName,
     issuedAt: Date.now(),

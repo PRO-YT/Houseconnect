@@ -1,27 +1,56 @@
-import { VerificationForm } from "@/components/forms/verification-form";
 import { ChecklistCard } from "@/components/dashboard/checklist-card";
-import { DashboardHeader } from "@/components/layout/dashboard-header";
+import { MonetizationCard } from "@/components/dashboard/monetization-card";
+import { ProfileSummaryCard } from "@/components/dashboard/profile-summary-card";
+import { VerificationForm } from "@/components/forms/verification-form";
 import { MessageList } from "@/components/dashboard/message-list";
+import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { StatusChip } from "@/components/dashboard/status-chip";
 import { Card } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { requireRole } from "@/lib/auth";
-import { demoProperties } from "@/lib/data/demo";
-import { getActiveSubscription, getDashboardMetricsForRole, getThreadsForUser } from "@/lib/repository";
+import {
+  getActiveSubscriptionServer,
+  getListingManagerPropertiesServer,
+  getSessionUserServer,
+  getThreadsForUserServer,
+} from "@/lib/server-repository";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function AgentDashboardPage() {
   const session = await requireRole(["agent"]);
-  const metrics = getDashboardMetricsForRole("agent", session.userId);
-  const messages = getThreadsForUser(session.userId).map((thread) => ({
+  const [{ user, profile }, threads, subscription, listings] = await Promise.all([
+    getSessionUserServer(session),
+    getThreadsForUserServer(session.userId),
+    getActiveSubscriptionServer(session.userId),
+    getListingManagerPropertiesServer(session.userId, session.role),
+  ]);
+
+  const messages = threads.map((thread) => ({
     id: thread.id,
     subject: thread.subject,
     counterpart: "Buyer / landlord",
     preview: thread.messages.at(-1)?.body || "No messages yet.",
     createdAt: thread.createdAt,
   }));
-  const subscription = getActiveSubscription(session.userId);
-  const listings = demoProperties.filter((property) => property.assignedAgentId === session.userId);
+
+  const metrics = [
+    { label: "Managed listings", value: String(listings.length), trend: "Draft, live, and pending review" },
+    {
+      label: "Featured stock",
+      value: String(listings.filter((property) => property.featured).length),
+      trend: "High-visibility inventory for premium leads",
+    },
+    {
+      label: "Open conversations",
+      value: String(messages.length),
+      trend: messages[0] ? "Lead activity is flowing into your inbox" : "No active conversations yet",
+    },
+    {
+      label: "Plan allowance",
+      value: String(subscription?.plan?.listingLimit || 2),
+      trend: subscription?.plan?.name ? `${subscription.plan.name} plan capacity` : "Free plan limit",
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -29,12 +58,35 @@ export default async function AgentDashboardPage() {
         ctaHref="/dashboard/listings"
         ctaLabel="Manage listings"
         description="Track listings, nurture leads, manage bookings, and upgrade your trust and subscription status."
+        eyebrow="Agent workspace"
         title="Agent dashboard"
       />
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => (
           <StatCard key={metric.label} {...metric} />
         ))}
+      </div>
+      <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+        <ProfileSummaryCard
+          ctaHref="/dashboard/profile"
+          ctaLabel="Open profile"
+          profile={profile}
+          role={session.role}
+          user={user}
+        />
+        <MonetizationCard
+          badge="Revenue"
+          ctaHref="/dashboard/subscriptions"
+          ctaLabel="Open billing"
+          description="This workspace now reflects the main monetization lanes available to the platform and your team."
+          items={[
+            "Recurring subscriptions for listing capacity and analytics access.",
+            "Featured placement credits for visibility boosts on premium listings.",
+            "Verification fees for trust-sensitive account reviews.",
+            "Future extension: premium landlord-to-agent lead routing.",
+          ]}
+          title="Agent monetization stack"
+        />
       </div>
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <Card className="p-6">
@@ -64,9 +116,7 @@ export default async function AgentDashboardPage() {
           <h2 className="text-xl font-semibold text-slate-950">Subscription snapshot</h2>
           <div className="mt-5 rounded-[24px] bg-slate-950 p-5 text-white">
             <p className="text-sm text-slate-300">Current plan</p>
-            <p className="mt-2 text-3xl font-semibold">
-              {subscription?.plan?.name || "Free"}
-            </p>
+            <p className="mt-2 text-3xl font-semibold">{subscription?.plan?.name || "Free"}</p>
             <p className="mt-3 text-sm text-slate-300">
               {subscription?.plan
                 ? `${formatCurrency(subscription.plan.price)} / ${subscription.plan.billingInterval}`
@@ -84,7 +134,7 @@ export default async function AgentDashboardPage() {
           items={[
             "Respond to new inquiries within 15 minutes to lift conversion quality.",
             "Keep fee breakdowns visible for premium rental listings.",
-            "Upload sharp media and documentation before requesting review.",
+            "Upload sharp media, map pins, and documentation before requesting review.",
             "Use featured placement on best-performing, high-trust properties.",
           ]}
           title="Growth checklist"

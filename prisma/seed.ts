@@ -2,9 +2,17 @@ import { PrismaClient, Prisma } from "@prisma/client";
 import { randomBytes, scryptSync } from "node:crypto";
 
 import {
+  demoBookings,
+  demoInquiries,
+  demoMessages,
+  demoNotifications,
   demoProfiles,
   demoProperties,
+  demoReports,
+  demoSubscriptions,
+  demoThreads,
   demoUsers,
+  demoVerificationRequests,
   subscriptionPlans,
 } from "../lib/data/demo";
 const prisma = new PrismaClient();
@@ -147,6 +155,121 @@ async function main() {
         },
       });
     }
+  }
+
+  for (const inquiry of demoInquiries) {
+    await prisma.inquiry.create({
+      data: {
+        id: inquiry.id,
+        propertyId: inquiry.propertyId,
+        buyerId: inquiry.buyerId,
+        agentId: inquiry.agentId,
+        landlordId: inquiry.landlordId,
+        message: inquiry.message,
+        status: toEnum(inquiry.status) as never,
+        source: inquiry.source,
+        createdAt: new Date(inquiry.createdAt),
+        updatedAt: new Date(inquiry.updatedAt),
+      },
+    });
+  }
+
+  for (const thread of demoThreads) {
+    await prisma.messageThread.create({
+      data: {
+        id: thread.id,
+        propertyId: thread.propertyId,
+        subject: thread.subject,
+        participantIds: thread.participantIds,
+        createdAt: new Date(thread.createdAt),
+      },
+    });
+  }
+
+  for (const message of demoMessages) {
+    await prisma.message.create({
+      data: {
+        id: message.id,
+        threadId: message.threadId,
+        senderId: message.senderId,
+        body: message.body,
+        isRead: message.isRead,
+        createdAt: new Date(message.createdAt),
+      },
+    });
+  }
+
+  for (const booking of demoBookings) {
+    await prisma.viewingBooking.create({
+      data: {
+        id: booking.id,
+        propertyId: booking.propertyId,
+        requesterId: booking.requesterId,
+        agentId: booking.agentId,
+        scheduledAt: new Date(booking.scheduledAt),
+        status: toEnum(booking.status) as never,
+        note: booking.note,
+        createdAt: new Date(booking.createdAt),
+      },
+    });
+  }
+
+  for (const subscription of demoSubscriptions) {
+    await prisma.userSubscription.create({
+      data: {
+        id: subscription.id,
+        userId: subscription.userId,
+        planId: subscription.planId,
+        status: toEnum(subscription.status) as never,
+        startedAt: new Date(subscription.startedAt),
+        expiresAt: new Date(subscription.expiresAt),
+        paymentProviderReference: subscription.paymentProviderReference,
+      },
+    });
+  }
+
+  for (const request of demoVerificationRequests) {
+    await prisma.verificationRequest.create({
+      data: {
+        id: request.id,
+        userId: request.userId,
+        type: toEnum(request.type) as never,
+        documentUrls: request.documentUrls,
+        status: toEnum(request.status) as never,
+        adminNote: request.adminNote,
+        createdAt: new Date(request.createdAt),
+        reviewedAt: request.reviewedAt ? new Date(request.reviewedAt) : undefined,
+      },
+    });
+  }
+
+  for (const report of demoReports) {
+    await prisma.report.create({
+      data: {
+        id: report.id,
+        reporterId: report.reporterId,
+        propertyId: report.propertyId,
+        reportedUserId: report.reportedUserId,
+        reason: report.reason,
+        details: report.details,
+        status: toEnum(report.status) as never,
+        createdAt: new Date(report.createdAt),
+      },
+    });
+  }
+
+  for (const notification of demoNotifications) {
+    await prisma.notification.create({
+      data: {
+        id: notification.id,
+        userId: notification.userId,
+        type: toEnum(notification.type) as never,
+        title: notification.title,
+        body: notification.body,
+        isRead: notification.isRead,
+        createdAt: new Date(notification.createdAt),
+      },
+    });
   }
 }
 

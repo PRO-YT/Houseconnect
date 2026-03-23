@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getRequestKey } from "@/lib/api";
-import { authenticateDemoUser, sessionResponse } from "@/lib/auth";
+import { authenticateUser, sessionResponse } from "@/lib/auth";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { validateAuthPayload, ValidationError } from "@/lib/validators";
 
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const payload = validateAuthPayload(await request.json());
-    const session = authenticateDemoUser(payload.email, payload.password);
+    const session = await authenticateUser(payload.email, payload.password);
 
     if (!session) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });

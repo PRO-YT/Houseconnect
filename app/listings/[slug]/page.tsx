@@ -12,8 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MapPinIcon, ShieldIcon } from "@/components/ui/icons";
-import { getAgentById, getPropertyBySlug, getSimilarProperties } from "@/lib/repository";
 import { buildMetadata } from "@/lib/seo";
+import {
+  getAgentByIdServer,
+  getPropertyBySlugServer,
+  getSimilarPropertiesServer,
+} from "@/lib/server-repository";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -22,7 +26,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const property = getPropertyBySlug(slug);
+  const property = await getPropertyBySlugServer(slug);
 
   if (!property || property.status !== "approved") {
     return buildMetadata({
@@ -45,13 +49,13 @@ export default async function PropertyDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const property = getPropertyBySlug(slug);
+  const property = await getPropertyBySlugServer(slug);
   if (!property || property.status !== "approved") {
     notFound();
   }
 
-  const agent = property.assignedAgentId ? getAgentById(property.assignedAgentId) : null;
-  const similar = getSimilarProperties(property);
+  const agent = property.assignedAgentId ? await getAgentByIdServer(property.assignedAgentId) : null;
+  const similar = await getSimilarPropertiesServer(property);
   const totalUpfrontRent =
     property.fees.agencyFee || property.fees.legalFee || property.fees.serviceCharge
       ? Object.values(property.fees).reduce((sum, value) => sum + (value || 0), property.price)
